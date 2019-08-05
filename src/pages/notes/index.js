@@ -22,6 +22,7 @@ export default class notes extends Component {
   }
   play = async () => {
     this.setState({search:''})
+    this.setState({url:''})
     this.setState({press:true})
     const response = await api.get(`/${this.state.search}`);
     this.setState({url:response.config.url})
