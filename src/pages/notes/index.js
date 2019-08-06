@@ -46,7 +46,7 @@ export default class notes extends Component {
       <div class="main-div">
 
         <div class="input-g">
-          <input type='text' name="pesquisar" value={this.state.search} onChange={search => this.setState({search:search.target.value})}/>
+          <input type='text' name="pesquisar" placeholder="Digite o nome da musica..." value={this.state.search} onChange={search => this.setState({search:search.target.value})}/>
           { !!this.state.url && 
             <button id="set" type="button"  onClick={this.setControls}>
               <MdSettings size={40} color="#0652DD"/>
