@@ -104,6 +104,10 @@ play-browser{
     .name{
         font-size: 15px;
     }
+    #set{
+        margin-left:0;
+        margin-top:10px;
+    }
 }
 
 
