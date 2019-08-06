@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
 header#main-header {
     width: 100%;
+    max-width: 120%;
     height: 60px;
     background: #0652DD;
 }

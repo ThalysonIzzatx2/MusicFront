@@ -9,6 +9,11 @@ body {
     font-family: 'Roboto', sans-serif;
     background: #00070c;
     color: #fff;
+    -webkit-font-smoothing: antialiased !important;
 }
+
+html, body, #root {
+    height: 100%;
+  }
 
 
