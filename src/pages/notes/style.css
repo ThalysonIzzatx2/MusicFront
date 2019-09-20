@@ -11,8 +11,14 @@
     flex-direction: row;
     align-items: center;
     justify-content:center;
+    border: 2px solid red;
+    padding: 15px;
+    border-radius: 25px;
 }
-
+.cc{
+    display: flex;
+    flex-direction: row;
+}
 input[type=text] {
     width: 350px;
     height: 45px;
@@ -20,23 +26,20 @@ input[type=text] {
     border: none;
     border-left: 8px solid #0652DD;
     color:#000;
-    font-size: 25px;
-    font-weight: bold;
+    font-size: 20px;
+    font-weight: 400;
     padding-left: 5px;
     }
 
 input[type=text]:focus {
     -moz-border-radius:4px;
     -webkit-border-radius:4px;
-    -webkit-box-shadow: 0px 0px 15px 1px #009432;
-    -moz-box-shadow: 0px 0px 15px 1px #009432;
-    box-shadow: 0px 0px 5px 0px #009432;
-    border:2px solid #009432;
+
     outline:none; 
     border-left: 8px solid #009432;
     color:#000;
-    font-size: 25px;
-    font-weight: bold;
+    font-size: 20px;
+    font-weight: '700';
     padding-left: 5px;
     border-radius:4px;
 }
@@ -65,10 +68,14 @@ audio{
     width: 500px;
 }
 .message{
+    display: flex;
+    align-self: center;
     font-size: 21px;
     font-weight: bold;
 }
 .name{
+    display: flex;
+    justify-content: center;
     font-size:18px;
     font-weight: bold;
 }
@@ -81,6 +88,8 @@ audio{
     
 }
 img{
+    display: flex;
+    align-self: center;
     background: #00070c;
     height: 80px;
     width: 80px;
@@ -101,13 +110,18 @@ play-browser{
     .input-g{
         flex-direction: column;
     }
+    .input-g button{
+        align-self: center;
+    }
+    .cc{
+        display: flex;
+        flex-direction: row;
+        margin-top:10px;
+    }
     .name{
         font-size: 15px;
     }
-    #set{
-        margin-left:0;
-        margin-top:10px;
-    }
+
 }
 
 
