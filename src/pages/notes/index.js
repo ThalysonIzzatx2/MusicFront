@@ -1,88 +1,120 @@
-import React, { Component } from 'react';
-import api from '../../services/api';
-import { MdChevronRight, MdSettings } from 'react-icons/md'
-import { withRouter } from 'react-router-dom';
+const express = require('express');
+const SearchVideos = require('./components/Crawler');
+const Downloader = require('./components/Down');
+const path = require('path');
+const fs = require('fs')
+const getStat = require('util').promisify(fs.stat);
+const cors = require('cors');
+if (process.env.NODE_ENV !== 'production') require('custom-env').env();
+const app = express()
+app.use(cors());
+console.log(__dirname)
+app.use('/static/pasta', express.static(__dirname + '/musics'));
 
-import loading from '../../assets/loading.gif';
-import './style.css';
+const dir = path.join(__dirname, 'musics');
+var music = '';
+const dl = new Downloader();
 
-
-
-
-// import { Container } from './styles';
-
-export default class notes extends Component {
-  state = {
-    search: '',
-    url:'',
-    title:'',
-    artist:'',
-    press:false,
-    controls:false
-
-  }
-  play = async () => {
-    this.setState({search:''})
-    this.setState({url:''})
-    this.setState({press:true})
-    const response = await api.get(`/${this.state.search}`);
-    this.setState({url:response.config.url})
-    console.log(response.config.url)
-    this.setState({title:response.data.title, artist:response.data.artist})
-    
-    this.setState({press:false})
-  }
-  setControls = () => {
-    let controls = !this.state.controls
-    this.setState({controls})
-  }
-
-  render() {
-
-    //const { user } = this.props.location.state;
-
-
-    return (
-      <div class="main-div">
-
-        <div class="input-g">
-          <input type='text' name="pesquisar" placeholder="Digite o nome da musica..." value={this.state.search} onChange={search => this.setState({search:search.target.value})}/>
-          { !!this.state.url && 
-            <button id="set" type="button"  onClick={this.setControls}>
-              <MdSettings size={40} color="#0652DD"/>
-            </button>
-          }
-          <button type="button"  onClick={this.play}>
-            <MdChevronRight size={60} color="#0652DD"/>
-          </button>
-        </div>
-        <div class="play">    
-          {this.state.press &&
-
-            <img class='img' src={loading} alt="Logo" />
-
-          }
-
-          { !this.state.url && !this.state.press && 
-            <>
-            <span class='message'>Após digitar a musica aguarde 15 segundos :D ...</span>
-            </>
-          }
-          { !!this.state.url && 
-         
-          <div class="play-music">
-            <h3 class='name'>{this.state.title} - {this.state.artist}</h3>
-            <audio controls={this.state.controls} preload="auto" autoPlay={true}>
-              <source src={this.state.url} type='audio/mpeg' />
-              Your browser does not support the audio element.
-            </audio>           
-          </div>
-          }
-        </div>
-      </div>
-    );
+ignoreFavicon = (req, res, next) => {
+  if (req.originalUrl === '/favicon.ico') {
+    res.status(204).json({nope: true});
+  } else {
+    next();
   }
 }
+app.use(ignoreFavicon)
+//read all musics in directory
+const allFilesSync = (dir, fileList = []) => {
+  fs.readdirSync(dir).forEach(file => {
+    const filePath = path.join(dir, file)
+
+    fileList.push(
+      fs.statSync(filePath).isDirectory()
+        ? { [file]: allFilesSync(filePath) }
+        : file
+    )
+  })
+  music = fileList;
+  console.log(music)
+
+}
+
+//create stream in browser
+const create = (name, data) => {
+  if (fs.existsSync(dir + "/" + name + '.json'))
+    return JSON.parse(fs.readFileSync(dir + "/" + name + '.json'))
+  console.log('não existe')
+  let nData = JSON.stringify(data)
+  fs.writeFileSync(dir + "/" + name + '.json', nData)
+  return data
+}
+const exclude = () => {
+  if (fs.existsSync(`${dir}/favicon.ico.mp3`))
+    return fs.unlinkSync(`${dir}/favicon.ico.mp3`)
+  if (fs.existsSync(`${dir}/favicon.ico.json`))
+    return fs.unlinkSync(`${dir}/favicon.ico.json`)
+}
+const stream = async (name, res) => {
+  const filePath = await path.resolve(__dirname, 'musics', `${name}.mp3`);
+  const stat = await getStat(filePath);
+  console.log(stat)
+  res.writeHead(200, {
+    'Content-Type': 'audio/mpeg',
+    'Content-Length': stat.size
+  });
+
+  const stream = fs.createReadStream(filePath);
+
+  stream.on('end', () => console.log('Start music in 5 seconds'));
+  stream.pipe(res)
+}
+
+//rota
+app.get('/:name', (req, res) => {
+  allFilesSync(dir)
+  exclude()
+  //download
+  const { name } = req.params
+  //check if music is downloaded
+  //if music is not downloaded start convert and download
+  if (!fs.existsSync(dir+"/"+req.params.name+".mp3")) {
+    //get id and name for YT(using crawler)
+    const dv = SearchVideos(req.params.name);
+    dv.then(result => {
+      console.log(result.newId)
+      console.log('Download started')
+      const dv = dl.getMP3({ videoId: result.newId, name: `${result.newName}.mp3` }, (err, response) => {
+        console.log(response.title)
+        let data = [ response, { rota: 'stream/' + req.params.name }]
+        const resposta = create(name, data)
+        return res.send({ resposta })
+        //res.redirect(`/${result.newName}`)
+        //exclude music before play (10s delay)
+        //setInterval(() => {fs.unlinkSync(`${dir}\\${result.newName}.mp3`)}, 7000 );
+      });
+
+    })
+    //if music is downloaded start stream
+  } else {
+    //stream
+    console.log('else', name)
+    const resposta = create(name, '')
+    res.send({ resposta })
+  }
+  //
 
 
-const ProfilewithRoute = withRouter(notes);
+
+});
+
+app.get('/', (req, res) => {
+  res.send('Digite o nome da musica após a barra /');
+});
+app.get('/stream/:name', (req, res) => {
+  stream(req.params.name, res)
+})
+
+
+
+
+app.listen(process.env.PORT || 8081, () => console.log('App na porta 3000'));
