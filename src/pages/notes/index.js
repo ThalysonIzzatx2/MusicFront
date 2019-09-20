@@ -72,7 +72,7 @@ export default class notes extends Component {
 
           { !this.state.url && !this.state.press && 
             <>
-            <span class='message'>Após digitar a musica aguarde 15 segundos :D ...</span>
+            <span class='message'>Após digitar a musica aguarde 15 segundos..</span>
             </>
           }
           { !!this.state.url && 
